@@ -27,6 +27,7 @@ public class StringProcessor implements Function<String, String> {
 
         double result;
         switch (operation) {
+
             case "MAX":
                 result = calculateMax(expressions, variableValues, valuesKindString);
                 break;
@@ -40,7 +41,7 @@ public class StringProcessor implements Function<String, String> {
                 result = calculateCount(expressions, variableValues, valuesKindString);
                 break;
             default:
-                throw new IllegalArgumentException("Invalid operation");
+                throw new IllegalArgumentException("ERR; Invalid operation");
         }
         finishTime = System.currentTimeMillis();
         elapsedTime = (double) (finishTime - startTime) / 1000.0;

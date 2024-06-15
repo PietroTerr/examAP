@@ -33,7 +33,7 @@ public  class ValueTuplesHandler {
         } else if (valuesKindString.equals("LIST")) {
             vk = valuesKind.LIST;
         } else {
-            throw new IllegalArgumentException("Invalid value kind: " + valuesKindString);
+            throw new IllegalArgumentException("ERR; Invalid value kind: " + valuesKindString);
         }
 
         String[] infos = variableValues.split(",");

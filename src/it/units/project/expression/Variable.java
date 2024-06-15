@@ -41,7 +41,7 @@ public class Variable extends Node {
     if (variables.containsKey(name)) {
       return variables.get(name);
     } else {
-      throw new IllegalArgumentException("Variable not found: " + name);
+      throw new IllegalArgumentException("ERR; Variable not found: " + name);
     }
   }
 }

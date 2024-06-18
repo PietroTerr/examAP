@@ -1,21 +1,18 @@
 package it.units.project.expression;
 
-import it.units.project.expression.Constant;
-import it.units.project.expression.Node;
-import it.units.project.expression.Operator;
-import it.units.project.expression.Variable;
-
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class Parser {
 
-  //BNF
-  //  <e> ::= <n> | <v> | (<e> <o> <e>)
+  // BNF
+  // <e> ::= <n> | <v> | (<e> <o> <e>)
 
   private final String string;
   private int cursor = 0;
+
+  private static final Pattern VARIABLE_PATTERN = Pattern.compile("[a-z]([0-9]?)");
 
   public Parser(String string) {
     this.string = string.replace(" ", "");
@@ -23,10 +20,11 @@ public class Parser {
 
   public enum TokenType {
     CONSTANT("[0-9]+(\\.[0-9]+)?"),
-    VARIABLE("[a-z][a-z0-9]*"),
+    VARIABLE("[a-z]([0-9]?)"),
     OPERATOR("[+\\-\\*/\\^]"),
     OPEN_BRACKET("\\("),
     CLOSED_BRACKET("\\)");
+
     private final String regex;
 
     TokenType(String regex) {
@@ -65,8 +63,12 @@ public class Parser {
     }
     token = TokenType.VARIABLE.next(string, cursor);
     if (token != null && token.start == cursor) {
+      String variableName = string.substring(token.start, token.end);
+      if (!isValidVariableName(variableName)) {
+        throw new IllegalArgumentException("ERR;(ComputationException) Unvalued variable " + variableName);
+      }
       cursor = token.end;
-      return new Variable(string.substring(token.start, token.end));
+      return new Variable(variableName);
     }
     token = TokenType.OPEN_BRACKET.next(string, cursor);
     if (token != null && token.start == cursor) {
@@ -117,24 +119,29 @@ public class Parser {
     ));
   }
 
-  public static double processExpression(Node operator, Map<String, Double> variables) {
-    double firstChild =getValue(operator.getChildren().get(0), variables);
-    double secondChild =getValue(operator.getChildren().get(1), variables);
+  private boolean isValidVariableName(String variableName) {
+    // Check if the variable name matches the allowed pattern
+    Matcher matcher = VARIABLE_PATTERN.matcher(variableName);
+    return matcher.matches();
+  }
 
-    if(operator instanceof Operator opt) {
-      return opt.getType().getFunction().apply(new double[]{firstChild,secondChild});
+  public static double processExpression(Node operator, Map<String, Double> variables) {
+    double firstChild = getValue(operator.getChildren().get(0), variables);
+    double secondChild = getValue(operator.getChildren().get(1), variables);
+
+    if (operator instanceof Operator opt) {
+      return opt.getType().getFunction().apply(new double[]{firstChild, secondChild});
     } else {
-      throw new IllegalArgumentException(String.format("Unknown operator: '%s'",operator));
+      throw new IllegalArgumentException(String.format("Unknown operator: '%s'", operator));
     }
   }
 
   public static double getValue(Node n, Map<String, Double> map) {
-    return switch (n){
+    return switch (n) {
       case Variable variable -> map.get(variable.getName());
-      case Operator operator -> processExpression(n,map);
+      case Operator operator -> processExpression(n, map);
       case Constant constant -> constant.getValue();
-      case null,default -> throw new IllegalArgumentException("Error");
+      case null, default -> throw new IllegalArgumentException("Error");
     };
   }
-
 }
